@@ -22,6 +22,7 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var cancelButton: UIButton!
     @IBOutlet weak var toggleButton: UIButton!
+    @IBOutlet weak var imageView: UIImageView!
     
     // 타이머에 설정된 시간을 초로 저장하는 프로퍼티(앱 실행 시 기본적으로 1분 설정 되있기 때문)
     var duration = 60
@@ -63,7 +64,13 @@ class ViewController: UIViewController {
                 let seconds = (self.currentSeconds % 3600) % 60
                 self.timerLabel.text = String(format: "%02d:%02d:%02d", hour,minutes,seconds)
                 self.progressView.progress = Float(self.currentSeconds) / Float(self.duration)
-                debugPrint(self.progressView.progress)
+                UIView.animate(withDuration: 0.5, delay:0, animations: {
+                    self.imageView.transform = CGAffineTransform(rotationAngle: .pi) //180도로 회전시킴
+                    //CGAffineTransform 뷰의 프레임을 계산하지 않고 2d 그래픽을 그릴 수 있음
+                })
+                UIView.animate(withDuration: 0.5, delay:0.5, animations: {
+                    self.imageView.transform = CGAffineTransform(rotationAngle: .pi * 2) //360
+                })
                 //1에서 0으로 갈수록 줄어듦
                 
                 if self.currentSeconds <= 0 {
@@ -85,8 +92,12 @@ class ViewController: UIViewController {
         }
         self.timerStatus = .end
         self.cancelButton.isEnabled = false
-        self.setTimerInfoViewVisble(isHidden: true)
-        self.datePicker.isHidden = false
+        UIView.animate(withDuration: 0.5, animations: {
+            self.timerLabel.alpha = 0
+            self.progressView.alpha = 0
+            self.datePicker.alpha = 1
+            self.imageView.transform = .identity
+        })
         self.toggleButton.isSelected = false
         self.timer?.cancel()
         self.timer = nil // 메모리 해제 꼭
@@ -105,12 +116,16 @@ class ViewController: UIViewController {
     
     @IBAction func tapToggleButton(_ sender: UIButton) {
         self.duration = Int(self.datePicker.countDownDuration)
+ 
         switch self.timerStatus {
         case .end: // 기본 상태
             self.currentSeconds = self.duration
             self.timerStatus = .start
-            self.setTimerInfoViewVisble(isHidden: false)
-            self.datePicker.isHidden = true
+            UIView.animate(withDuration: 0.5, animations: {
+                self.timerLabel.alpha = 1
+                self.progressView.alpha = 1
+                self.datePicker.alpha = 0
+            })
             self.toggleButton.isSelected = true
             self.cancelButton.isEnabled = true
             self.startTimer()
